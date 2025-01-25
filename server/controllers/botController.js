@@ -6,7 +6,7 @@ const TelegramApi = require('node-telegram-bot-api') // Пакет для раб
 
 const connectionDB = require('./connectionDB')
 const { SECRET_RECOVERY_KEY, SECRET_IDENTIFICATION_KEY } = require('../config')
-const { buttonsForPassword, buttonsForCopyToken } = require('./keyboards')
+const { buttonsForPassword, buttonsForCopyToken, buttonsForStartGuesser, buttonsForPlayingGuesser } = require('./keyboards')
 
 // Создание роутера, который обрабатывает /recoveryPass
 const router = express.Router()
@@ -58,6 +58,12 @@ let currentTopic = '' // Текущая тема разговора
 let recoveryToken = '' // Токен восстановления
 let newPass = '' // Новый пароль (для восстановления)
 let currentLogin = '' // Логин пользователя (который восстанавливает пароль)
+let guesser = {
+    left: 1,
+    right: 1001,
+    resultNumber: 0,
+    attempts: 0,
+}
 
 // Функция генерации токена восстановеления
 function generateRecoveryToken(chatId, identificationToken) {
@@ -72,6 +78,7 @@ function startBot() {
         { command: '/start', description: 'Познакомимся!' },
         { command: '/getinfo', description: 'Получить ID чата' },
         { command: '/getrecoverytoken', description: 'Получить токен восстановления' },
+        { command: '/start_guesser', description: 'Угадай моё число!' },
     ])
 
     bot.on('message', async (msg) => {
@@ -87,6 +94,15 @@ function startBot() {
             return await bot.sendMessage(chatId, 'Для создания уникального токена восстановления, пожалуйста, укажите ваш токен идентификации:')
         }
 
+        // Игра = "Угадай число"
+        if (message == '/start_guesser') {
+            currentTopic = 'Угадываем число'
+            await bot.sendMessage(chatId, `Спорим, я угадаю твоё число за 10 попыток?`)
+            await bot.sendMessage(chatId, `Загадай число от 1 до 1000`)
+            setTimeout(() => { bot.sendMessage(chatId, `Загадал?`, buttonsForStartGuesser) }, 1500)
+            return await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/a6f/1ae/a6f1ae15-7c57-3212-8269-f1a0231ad8c2/1.webp')
+        }
+
         // Тема = Создание токена восстановления
         if (currentTopic == 'Создание токена восстановления') {
             currentTopic = ''
@@ -100,6 +116,7 @@ function startBot() {
             newPass = message
             return await bot.sendMessage(chatId, `Ваш новый пароль '${message}'. Все верно?`, buttonsForPassword)
         }
+
 
         // Неизвестная команда
         return await bot.sendSticker(chatId, 'https://cdn.tlgrm.ru/stickers/a6f/1ae/a6f1ae15-7c57-3212-8269-f1a0231ad8c2/16.webp')
@@ -130,6 +147,56 @@ function startBot() {
             }
             if (data == 'passIsIncorrect') { bot.sendMessage(chatId, 'Повторите попытку...') }
             if (data == 'cancel') { currentTopic = ''; bot.sendMessage(chatId, 'Супер! Запиши😁') }
+        }
+        // Тема = Угадываем число
+        if (currentTopic == 'Угадываем число') {
+            if (data == 'start_guesser') {
+                guesser.resultNumber = Math.floor((guesser.right - guesser.left) / 2)
+                guesser.attempts++
+                return bot.sendMessage(chatId, `Окей, начинаем! Твоё число ${guesser.resultNumber}?`, buttonsForPlayingGuesser)
+            }
+            if (data == 'finish_guesser') {
+                return bot.sendMessage(chatId, `Твоё чило: ${guesser.resultNumber}\nПопыток:${guesser.attempts}`)
+                    .then(() => {
+                        currentTopic = ''
+                        guesser = { left: 1, right: 1001, resultNumber: 0, attempts: 0, }
+                    })
+            }
+            if (data == 'less_guesser') {
+                guesser.right = guesser.resultNumber
+                let middle = Math.floor((guesser.right - guesser.left) / 2)
+                guesser.resultNumber = guesser.left + middle
+                guesser.attempts++
+                if (guesser.attempts == 10) {
+                    return bot.sendMessage(chatId, `Твоё чило: ${guesser.resultNumber}\nПопыток:${guesser.attempts}`)
+                        .then(() => {
+                            currentTopic = ''
+                            guesser = { left: 1, right: 1001, resultNumber: 0, attempts: 0, }
+                        })
+                }
+                return bot.sendMessage(chatId, `Твоё число ${guesser.resultNumber}?`, buttonsForPlayingGuesser)
+            }
+            if (data == 'more_guesser') {
+                guesser.left = guesser.resultNumber
+                let middle = Math.floor((guesser.right - guesser.left) / 2)
+                guesser.resultNumber = guesser.left + middle
+                guesser.attempts++
+                if (guesser.attempts == 10) {
+                    return bot.sendMessage(chatId, `Твоё чило: ${guesser.resultNumber}\nПопыток:${guesser.attempts}`)
+                        .then(() => {
+                            currentTopic = ''
+                            guesser = { left: 1, right: 1001, resultNumber: 0, attempts: 0, }
+                        })
+                }
+                return bot.sendMessage(chatId, `Твоё число ${guesser.resultNumber}?`, buttonsForPlayingGuesser)
+            }
+            if (data == 'stop_guesser') {
+                return bot.sendMessage(chatId, 'Игра завершена, приходи ещё!')
+                    .then(() => {
+                        currentTopic = ''
+                        guesser = { left: 1, right: 1001, resultNumber: 0, attempts: 0, }
+                    })
+            }
         }
     })
 }

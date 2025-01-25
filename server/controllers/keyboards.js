@@ -18,5 +18,31 @@ module.exports = {
                 }],
             ]
         })
+    },
+    buttonsForStartGuesser: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [
+                    { text: 'Загадал!', callback_data: 'start_guesser' },
+                    { text: 'Давай завершим', callback_data: 'stop_guesser' }
+                ],
+            ]
+        })
+    },
+    buttonsForPlayingGuesser: {
+        reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [
+                    { text: 'Угадал!', callback_data: 'finish_guesser' },
+                ],
+                [
+                    { text: 'Больше', callback_data: 'more_guesser' },
+                    { text: 'Меньше', callback_data: 'less_guesser' }
+                ],
+                [
+                    { text: 'Давай завершим', callback_data: 'stop_guesser' },
+                ],
+            ]
+        })
     }
 }
