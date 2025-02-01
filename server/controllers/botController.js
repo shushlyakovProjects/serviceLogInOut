@@ -3,10 +3,16 @@ const bcrypt = require('bcryptjs') // Пакет для хеширования �
 const jwt = require('jsonwebtoken')  // Пакет для генерации токена
 const ncp = require('copy-paste') // Пакет для копирования инфромации в буфер
 const TelegramApi = require('node-telegram-bot-api') // Пакет для работы с Api BOT
+const fs = require('fs')
 
 const connectionDB = require('./connectionDB')
-const { SECRET_RECOVERY_KEY, SECRET_IDENTIFICATION_KEY } = require('../config')
-const { buttonsForPassword, buttonsForCopyToken, buttonsForStartGuesser, buttonsForPlayingGuesser } = require('./keyboards')
+const { SECRET_RECOVERY_KEY, SECRET_IDENTIFICATION_KEY, dirname_server } = require('../config')
+const {
+    buttonsForPassword,
+    buttonsForCopyToken,
+    buttonsForStartGuesser,
+    buttonsForPlayingGuesser,
+    buttonsForMusic } = require('./keyboards')
 
 // Создание роутера, который обрабатывает /recoveryPass
 const router = express.Router()
@@ -79,6 +85,7 @@ function startBot() {
         { command: '/getinfo', description: 'Получить ID чата' },
         { command: '/getrecoverytoken', description: 'Получить токен восстановления' },
         { command: '/start_guesser', description: 'Угадай моё число!' },
+        { command: '/get_music', description: 'Давай послушаем музыку' },
     ])
 
     bot.on('message', async (msg) => {
@@ -101,6 +108,13 @@ function startBot() {
             await bot.sendMessage(chatId, `Загадай число от 1 до 1000`)
             setTimeout(() => { bot.sendMessage(chatId, `Загадал?`, buttonsForStartGuesser) }, 1500)
             return await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/a6f/1ae/a6f1ae15-7c57-3212-8269-f1a0231ad8c2/1.webp')
+        }
+
+        // Функция = "Слушаем музыку"
+        if (message == '/get_music') {
+            currentTopic = 'Слушаем музыку'
+            await bot.sendMessage(chatId, 'А давай!')
+            return await bot.sendMessage(chatId, `Какое у вас настроение?`, buttonsForMusic)
         }
 
         // Тема = Создание токена восстановления
@@ -197,6 +211,16 @@ function startBot() {
                         guesser = { left: 1, right: 1001, resultNumber: 0, attempts: 0, }
                     })
             }
+        }
+
+        // Тема = Слушаем музыку
+        if (currentTopic == 'Слушаем музыку') {
+            const url = dirname_server + '/static/music/' + data
+            const songs = fs.readdirSync(url)
+            const random = Math.round(Math.random() * (songs.length - 1) + 1) - 1;
+            
+            await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/a6f/1ae/a6f1ae15-7c57-3212-8269-f1a0231ad8c2/14.webp')
+            return await bot.sendAudio(chatId, url + '/' + songs[random])
         }
     })
 }
