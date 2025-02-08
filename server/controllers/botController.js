@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs') // Пакет для хеширования �
 const jwt = require('jsonwebtoken')  // Пакет для генерации токена
 const ncp = require('copy-paste') // Пакет для копирования инфромации в буфер
 const TelegramApi = require('node-telegram-bot-api') // Пакет для работы с Api BOT
+const axios = require('axios') // Пакет для http запросов
 const fs = require('fs')
 
 const connectionDB = require('./connectionDB')
@@ -86,6 +87,7 @@ function startBot() {
         { command: '/getrecoverytoken', description: 'Получить токен восстановления' },
         { command: '/start_guesser', description: 'Угадай моё число!' },
         { command: '/get_music', description: 'Давай послушаем музыку' },
+        { command: '/get_weather', description: 'Расскажи о погоде в городе' },
     ])
 
     bot.on('message', async (msg) => {
@@ -115,6 +117,42 @@ function startBot() {
             currentTopic = 'Слушаем музыку'
             await bot.sendMessage(chatId, 'А давай!')
             return await bot.sendMessage(chatId, `Какое у вас настроение?`, buttonsForMusic)
+        }
+
+        // Функция = "Узнаем погоду"
+        if (message == '/get_weather') {
+            currentTopic = 'Узнаем погоду'
+            return await bot.sendMessage(chatId, `Какой город вас интересует?`)
+        }
+
+        // Тема = Узнаем погоду
+        if (currentTopic == 'Узнаем погоду') {
+            currentTopic = ''
+            const city = message
+            const API_KEY = `eb8e3d2ea6c43cf9b5cb259b8023d542`
+            const httpRequest = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=ru`
+
+            await axios.get(httpRequest)
+                .then(async (result) => {
+                    const data = result.data
+
+                    const city_name = data.name
+                    const { temp, feels_like, humidity } = data.main
+                    const description = data.weather[0].description
+                    const wind_speed = data.wind.speed
+                    const cloudiness = data.clouds.all
+
+                    await bot.sendMessage(chatId, `Смотрим погоду в городе: ${city_name}`)
+                    await bot.sendMessage(chatId, `Температура сейчас: ${temp} °C, ощущается как ${feels_like} °C \n<b>${description}</b>`, {parse_mode: 'HTML'})
+                    await bot.sendMessage(chatId, `Скорость ветра: ${wind_speed} м/с`)
+                    await bot.sendMessage(chatId, `Облачность: ${cloudiness}%. Влажность: ${humidity}%`)
+
+                    await bot.sendLocation(chatId, data.coord.lat, data.coord.lon)
+                })
+                .catch(async (error) => {
+                    await bot.sendMessage(chatId, 'Такой город не найден')
+                })
+            return
         }
 
         // Тема = Создание токена восстановления
@@ -218,7 +256,7 @@ function startBot() {
             const url = dirname_server + '/static/music/' + data
             const songs = fs.readdirSync(url)
             const random = Math.round(Math.random() * (songs.length - 1) + 1) - 1;
-            
+
             await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/a6f/1ae/a6f1ae15-7c57-3212-8269-f1a0231ad8c2/14.webp')
             return await bot.sendAudio(chatId, url + '/' + songs[random])
         }
