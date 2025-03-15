@@ -11,7 +11,7 @@
         <div class="recoveryPass">
             <div class="recoveryPass__left">
                 <button @click="copyIdentificationToken">Скопировать токен идентификации</button>
-                <a class="likeButton" href="https://web.telegram.org/k/#@PasswordRecoverySystemm_bot"
+                <a class="likeButton" href="https://web.telegram.org/k/#@PasswordRecoverySystem_bot"
                     target="_blank">Открыть Бота</a>
                 <p>Восстановление пароля производится при помощи Telegram BOT</p>
                 <h3>Инструкция:</h3>

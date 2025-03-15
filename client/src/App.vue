@@ -7,6 +7,7 @@
         <router-link to="/reg" v-if="!USER_INFO.login">Регистрация</router-link>
         <router-link to="/auth" v-if="!USER_INFO.login">Авторизация</router-link>
         <router-link to="/account" v-if="USER_INFO.login">Личный кабинет</router-link>
+        <router-link to="/general-chat" v-if="USER_INFO.login">Общий чат</router-link>
       </nav>
     </header>
 

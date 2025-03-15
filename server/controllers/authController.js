@@ -24,6 +24,7 @@ router.post('/', (request, response) => {
         const token = request.cookies.ACCESS_TOKEN
         // Проверяем действительность токена
         const decodeData = jwt.verify(token, SECRET_ACCESS_KEY)
+
         // Достаем данные из токена
         const { id, role } = decodeData
         if (role == 'admin') {

@@ -40,30 +40,33 @@ export default {
     },
     methods: {
         async authorization() {
-            await axios.post('/api/authorization', this.userInfo)
-                .then((result) => {
-                    this.messages.error = ''
-                    this.messages.success = 'Успешно'
-                    this.$emit('updateUser')
-                    this.$router.push('/account')
-                })
-                .catch((err) => {
-                    this.messages.success = ''
-                    this.messages.error = 'Ошибка! ' + err.response.data
-                })
+            if (this.userInfo.login) {
+                document.cookie = `ACCESS_TOKEN=`
+                await axios.post('/api/authorization', this.userInfo)
+                    .then((result) => {
+                        this.messages.error = ''
+                        this.messages.success = 'Успешно'
+                        this.$emit('updateUser')
+                        this.$router.push('/account')
+                    })
+                    .catch((err) => {
+                        this.messages.success = ''
+                        this.messages.error = 'Ошибка! ' + err.response.data
+                    })
+            }
         },
-        async recoveryPass(){
-            if(this.userInfo.login){
-                await axios.post('/api/recoveryPass', {login: this.userInfo.login})
-                .then((result)=>{
-                    this.messages.error = ''
-                    this.messages.success = 'Успешно! ' + result.data
-                })
-                .catch((err)=>{
-                    this.messages.error = 'Ошибка! ' + err.response.data
-                    this.messages.success = ''
-                })
-            }else{
+        async recoveryPass() {
+            if (this.userInfo.login) {
+                await axios.post('/api/recoveryPass', { login: this.userInfo.login })
+                    .then((result) => {
+                        this.messages.error = ''
+                        this.messages.success = 'Успешно! ' + result.data
+                    })
+                    .catch((err) => {
+                        this.messages.error = 'Ошибка! ' + err.response.data
+                        this.messages.success = ''
+                    })
+            } else {
                 this.messages.error = 'Укажите логин для восстановления'
             }
         }
@@ -77,7 +80,8 @@ main {
     justify-content: center;
     align-items: center;
 }
-.warn__message{
+
+.warn__message {
     color: rgb(218, 142, 1);
     cursor: pointer;
     user-select: none;
