@@ -15,6 +15,7 @@
     "cookie-parser": "^1.4.7",
     "copy-paste": "^1.5.3",
     "express": "^4.21.1",
+    "express-fileupload": "^1.5.1",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "node-telegram-bot-api": "^0.66.0",

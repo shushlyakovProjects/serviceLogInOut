@@ -8,11 +8,12 @@
         <router-link to="/auth" v-if="!USER_INFO.login">Авторизация</router-link>
         <router-link to="/account" v-if="USER_INFO.login">Личный кабинет</router-link>
         <router-link to="/general-chat" v-if="USER_INFO.login">Общий чат</router-link>
+        <router-link to="/private-chat" v-if="USER_INFO.login">Мессенджер</router-link>
       </nav>
     </header>
 
     <div id="content__wrapper">
-      <router-view @updateUser="checkAuth"></router-view>
+      <router-view @updateUser="checkAuth" :USER_INFO="USER_INFO"></router-view>
     </div>
 
   </div>

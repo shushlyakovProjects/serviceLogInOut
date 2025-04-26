@@ -8,14 +8,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Registration from './components/Registration.vue'
 import Authorization from './components/Authorization.vue'
 import Account from './components/Account.vue'
-import Chat from './components/Chat.vue'
+import GeneralChat from './components/GeneralChat.vue'
+import PrivateChat from './components/PrivateChat.vue'
+
 
 // Создаем массив, указывающий соответствие пути и компонента
 const routes = [
     { path: '/reg', component: Registration },
     { path: '/auth', component: Authorization },
     { path: '/account', component: Account },
-    { path: '/general-chat', component: Chat },
+    { path: '/general-chat', component: GeneralChat },
+    { path: '/private-chat', component: PrivateChat },
 ]
 
 // Создаем роутер с настройками
